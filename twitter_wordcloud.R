@@ -1,0 +1,23 @@
+library(twitteR)
+setup_twitter_oauth("XXXXXXXXXXXXXXXXXXXX1","XXXXXXXXXXXXXXXXXXX2","XXXXXXXXXXXXXXXXXXXXXX3","XXXXXXXXXXXX4")   #4 key authentication that you get from twitter api website
+searchtw<-searchTwitter("@name",n=2000,lang = "en")   #name of the twitter account
+#rdmTweets <- userTimeline("BillGates", n=2000)
+#n <- length(rdmTweets)
+#rdmTweets[1:3]
+df=do.call("rbind",lapply(searchtw,as.data.frame))
+library(tm)
+myCorpus <- Corpus(VectorSource(df$text))
+myCorpus <- tm_map(myCorpus, removePunctuation)
+myCorpus <- tm_map(myCorpus, removeNumbers)
+myStopwords <- c(stopwords('english'), "available", "via")
+myCorpus <- tm_map(myCorpus, removeWords, myStopwords)
+head(myCorpus)
+myDtm <- TermDocumentMatrix(myCorpus, control = list(minWordLength = 1))
+findFreqTerms(myDtm, lowfreq=10)
+library(wordcloud)
+m <- as.matrix(myDtm)
+v <- sort(rowSums(m), decreasing=TRUE)
+myNames <- names(v)
+k <- which(names(v)=="miners")
+d <- data.frame(word=myNames, freq=v)
+wordcloud(d$word, d$freq, min.freq=3)
